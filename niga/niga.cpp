@@ -1,104 +1,92 @@
-﻿#include <vector>
-#include <cmath>
-#include <algorithm>
-#include "tgaimage.h"
+﻿#include "our_gl.h"
 #include "model.h"
-#include "geometry.h"
 
-const TGAColor white = TGAColor(255, 255, 255, 255);
-Model* model = NULL;
-const int width = 800;
-const int height = 800;
+extern mat<4, 4> ModelView, Perspective; // "OpenGL" state matrices
+extern std::vector<double> zbuffer;     // the depth buffer
 
+// --- Camera ---
+struct Camera {
+    vec3 position;
+    vec3 target;
+    vec3 up;
+    float fov;
+    float aspect;
+    float nearPlane;
+    float farPlane;
 
-void line(int x0, int y0, int x1, int y1, TGAImage& image, TGAColor color) {
-    bool steep = false;
-    if (std::abs(x0 - x1) < std::abs(y0 - y1)) {
-        std::swap(x0, y0);
-        std::swap(x1, y1);
-        steep = true;
+    Camera(vec3 pos, vec3 tgt, vec3 u,
+        float f = 45.f, float a = 1.f, float n = 0.1f, float fP = 100.f)
+        : position(pos), target(tgt), up(u),
+        fov(f), aspect(a), nearPlane(n), farPlane(fP) {
     }
-    if (x0 > x1) {
-        std::swap(x0, x1);
-        std::swap(y0, y1);
+
+    void setup() const {
+        lookat(position, target, up);           // build ModelView
+        init_perspective(norm(position - target)); // build Perspective
+    }
+};
+
+// --- Phong Shader ---
+struct PhongShader : IShader {
+    const Model& model;
+    vec4 l;
+    vec2  varying_uv[3];
+    vec4 varying_nrm[3];
+    vec4 tri[3];
+
+    PhongShader(const vec3 light, const Model& m) : model(m) {
+        l = normalized(ModelView * vec4{ light.x, light.y, light.z, 0. });
     }
 
-    for (int x = x0; x <= x1; x++) {
-        float t = (x - x0) / (float)(x1 - x0);
-        int y = y0 * (1. - t) + y1 * t;
-        if (steep) {
-            image.set(y, x, color);
-        }
-        else {
-            image.set(x, y, color);
-        }
+    virtual vec4 vertex(const int face, const int vert) {
+        varying_uv[vert] = model.uv(face, vert);
+        varying_nrm[vert] = ModelView.invert_transpose() * model.normal(face, vert);
+        vec4 gl_Position = ModelView * model.vert(face, vert);
+        tri[vert] = gl_Position;
+        return Perspective * gl_Position;
     }
-}
 
-
-void triangle(Vec3i t0, Vec3i t1, Vec3i t2, TGAImage& image, TGAColor color, int* zbuffer) {
-    if (t0.y > t1.y) std::swap(t0, t1);
-    if (t0.y > t2.y) std::swap(t0, t2);
-    if (t1.y > t2.y) std::swap(t1, t2);
-
-    int total_height = t2.y - t0.y;
-    for (int i = 0; i < total_height; i++) {
-        bool second_half = i > (t1.y - t0.y) || t1.y == t0.y;
-        int segment_height = second_half ? t2.y - t1.y : t1.y - t0.y;
-        float alpha = total_height == 0 ? 0 : (float)i / total_height;
-        float beta = segment_height == 0 ? 0 : (float)(i - (second_half ? t1.y - t0.y : 0)) / segment_height;
-
-        Vec3f A = Vec3f(t0) + (Vec3f(t2) - Vec3f(t0)) * alpha;
-        Vec3f B = second_half ? Vec3f(t1) + (Vec3f(t2) - Vec3f(t1)) * beta
-            : Vec3f(t0) + (Vec3f(t1) - Vec3f(t0)) * beta;
-
-        if (A.x > B.x) std::swap(A, B);
-
-        for (int j = (int)A.x; j <= (int)B.x; j++) {
-            float phi = B.x == A.x ? 1. : (float)(j - A.x) / (float)(B.x - A.x);
-            Vec3f P = A + (B - A) * phi;
-            int idx = (int)P.x + (int)P.y * width;
-            if (zbuffer[idx] < (int)P.z) {
-                zbuffer[idx] = (int)P.z;
-                image.set((int)P.x, (int)P.y, color);
-            }
-        }
+    virtual std::pair<bool, TGAColor> fragment(const vec3 bar) const {
+        vec2 uv = varying_uv[0] * bar[0] + varying_uv[1] * bar[1] + varying_uv[2] * bar[2];
+        vec4 n = normalized(varying_nrm[0] * bar[0] + varying_nrm[1] * bar[1] + varying_nrm[2] * bar[2]);
+        vec4 r = normalized(n * (n * l) * 2 - l);
+        double ambient = .4;
+        double diffuse = std::max(0., n * l);
+        double specular = (.5 + 2. * sample2D(model.specular(), uv)[0] / 255.) * std::pow(std::max(r.z, 0.), 35);
+        TGAColor color = sample2D(model.diffuse(), uv);
+        for (int i : {0, 1, 2}) color[i] = std::min<int>(255, color[i] * (ambient + diffuse + specular));
+        return { false, color };
     }
-}
-
+};
 
 int main(int argc, char** argv) {
-    if (argc == 2) {
-        model = new Model(argv[1]);
-    }
-    else {
-        model = new Model("obj/african_head.obj");
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " obj/model.obj\n";
+        return 1;
     }
 
-    TGAImage image(width, height, TGAImage::RGB);
-    int* zbuffer = new int[width * height];
-    for (int i = 0; i < width * height; i++) zbuffer[i] = -std::numeric_limits<int>::max();
+    constexpr int width = 800;
+    constexpr int height = 800;
 
-   
-    for (int i = 0; i < model->nfaces(); i++) {
-        std::vector<int> face = model->face(i);
-        Vec3i screen_coords[3];
-        for (int j = 0; j < 3; j++) {
-            Vec3f v = model->vert(face[j]);
-            screen_coords[j] = Vec3i(
-                (int)((v.x + 1.) * width / 2.),
-                (int)((v.y + 1.) * height / 2.),
-                (int)(v.z * 255) 
-            );
+    // --- Camera setup ---
+    Camera cam({ -100,10,20 }, { 10,20,111111}, { 11111,100,-455451 }, 45.f, width / (float)height);
+    cam.setup();
+
+    init_viewport(width / 16, height / 16, width * 7 / 8, height * 7 / 8);
+    init_zbuffer(width, height);
+    TGAImage framebuffer(width, height, TGAImage::RGB, { 177,195,209,255 });
+
+    vec3 light{ 1,1,1 };
+
+    for (int m = 1; m < argc; m++) {
+        Model model(argv[m]);
+        PhongShader shader(light, model);
+        for (int f = 0; f < model.nfaces(); f++) {
+            Triangle clip = { shader.vertex(f,0), shader.vertex(f,1), shader.vertex(f,2) };
+            rasterize(clip, shader, framebuffer);
         }
-        triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, white, zbuffer);
     }
 
-    image.flip_vertically();
-    image.write_tga_file("output.tga");
-
-    delete[] zbuffer;
-    delete model;
-
+    framebuffer.write_tga_file("output.tga");
     return 0;
 }
