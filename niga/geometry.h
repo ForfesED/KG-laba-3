@@ -1,12 +1,11 @@
 #ifndef __GEOMETRY_H__
 #define __GEOMETRY_H__
 
-//#pragma once
 #include <cmath>
 #include <iostream>
 using std::ostream;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 template <class t> struct Vec2 {
 	union {
@@ -30,6 +29,9 @@ template <class t> struct Vec3 {
 	};
 	Vec3() : x(0), y(0), z(0) {}
 	Vec3(t _x, t _y, t _z) : x(_x), y(_y), z(_z) {}
+
+	Vec3(const Vec3<int>& v) : x(v.x), y(v.y), z(v.z) {}
+
 	inline Vec3<t> operator ^(const Vec3<t>& v) const { return Vec3<t>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x); }
 	inline Vec3<t> operator +(const Vec3<t>& v) const { return Vec3<t>(x + v.x, y + v.y, z + v.z); }
 	inline Vec3<t> operator -(const Vec3<t>& v) const { return Vec3<t>(x - v.x, y - v.y, z - v.z); }

@@ -1,5 +1,48 @@
 ﻿  geometry.cpp
   model.cpp
   niga.cpp
+C:\Users\andre\source\repos\niga\niga\niga.cpp(28,15): warning C4244: инициализация: преобразование "double" в "int", возможна потеря данных
+C:\Users\andre\source\repos\niga\niga\niga.cpp(58,23): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,30): warning C4244: инициализация: преобразование "const t" в "t", возможна потеря данных
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,30): warning C4244:         with
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,30): warning C4244:         [
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,30): warning C4244:             t=int
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,30): warning C4244:         ]
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,30): warning C4244:         and
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,30): warning C4244:         [
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,30): warning C4244:             t=float
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,30): warning C4244:         ]
+  (компиляция исходного файла "niga.cpp")
+      C:\Users\andre\source\repos\niga\niga\geometry.h(34,30):
+      контекст создания экземпляра шаблона (сначала самый старый)
+          C:\Users\andre\source\repos\niga\niga\niga.cpp(51,15):
+          выполняется компиляция ссылки на экземпляр класс шаблон функции "Vec3<float>"
+          C:\Users\andre\source\repos\niga\niga\geometry.h(34,2):
+          во время компиляции функции-члена класс шаблон "Vec3<float>::Vec3(const Vec3<int> &)"
+              C:\Users\andre\source\repos\niga\niga\niga.cpp(51,29):
+              см. первую ссылку на "Vec3<float>::Vec3" в "triangle"
+  
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,38): warning C4244: инициализация: преобразование "const t" в "t", возможна потеря данных
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,38): warning C4244:         with
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,38): warning C4244:         [
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,38): warning C4244:             t=int
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,38): warning C4244:         ]
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,38): warning C4244:         and
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,38): warning C4244:         [
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,38): warning C4244:             t=float
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,38): warning C4244:         ]
+  (компиляция исходного файла "niga.cpp")
+  
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,46): warning C4244: инициализация: преобразование "const t" в "t", возможна потеря данных
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,46): warning C4244:         with
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,46): warning C4244:         [
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,46): warning C4244:             t=int
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,46): warning C4244:         ]
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,46): warning C4244:         and
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,46): warning C4244:         [
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,46): warning C4244:             t=float
+C:\Users\andre\source\repos\niga\niga\geometry.h(34,46): warning C4244:         ]
+  (компиляция исходного файла "niga.cpp")
+  
   Создание кода...
   niga.vcxproj -> C:\Users\andre\source\repos\niga\x64\Debug\niga.exe
