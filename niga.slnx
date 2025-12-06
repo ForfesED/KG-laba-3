@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="niga/niga.vcxproj" />
+  <Project Path="niga/niga.vcxproj" Id="d25b3478-2fab-49fa-8312-fef7c27cbb80" />
 </Solution>
